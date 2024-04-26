@@ -48,25 +48,15 @@ for size in documents_sizes:
         documents = [generate_document(size) for _ in range(count)]
         # Measure insertion time
         start_time = time.time_ns()
-        st1 = time.time()
         collection.insert_many(documents)
-        st2 = time.time()
         end_time = time.time_ns()
 
         # Calculate and store results
         elapsed_time = end_time - start_time
-        insertion_results.append({
-            "document_size": size,
-            "num_documents": count,
-            "elapsed_time_seconds": elapsed_time,
-            "documents_per_second": count / (st2-st1)
-        })
 
-# Print results
-for result in insertion_results:
-    print(f"Document Size: {result['document_size']}, Number of Documents: {result['num_documents']}, "
-          f"Elapsed Time (seconds): {result['elapsed_time_seconds']:.2f}, "
-          f"Documents per Second: {result['documents_per_second']:.2f}")
+        inverse_thoruoutput = float(elapsed_time / count)
+        print(f"Document Size: {size}, Number of Documents: {count}, "
+              f"Elapsed Time (seconds): {elapsed_time}", f"1/Throughput: {inverse_thoruoutput}")
 
 # Clean up: Comment out the next line if you want to keep the data in the database
 collection.drop()
