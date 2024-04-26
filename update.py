@@ -12,7 +12,9 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client.seng533
 collection = db['seng533']
 
-# Generate data 
+# Generate data
+
+
 def generate_fake_data(collection, num_records):
     fake = Faker()
     for _ in range(num_records):
@@ -21,17 +23,16 @@ def generate_fake_data(collection, num_records):
             'email': fake.email(),
             'address': fake.address(),
             'phone': fake.phone_number(),
-            'id': random.randrange(1001,10000),
+            'id': random.randrange(1001, 10000),
             'bool': bool(random.getrandbits(1)),
         }
         collection.insert_one(record)
 
-        
 
-# Number of documents to update 
-num_docs_to_update = [1, 5, 10, 100, 1000, 10000, 100000]
+# Number of documents to update
+num_docs_to_update = [1000000]
 
-# Update types 
+# Update types
 update_fields = ['name', 'id', 'bool']
 
 update_to_do = {
@@ -48,11 +49,11 @@ for num_docs in num_docs_to_update:
         # Generate documents
         documents = [generate_fake_data(collection, num_docs)]
 
-        # Time the update 
+        # Time the update
         start_time = time.time_ns()
 
         # update documents
-        collection.update_many({}, { "$set": {field: update_to_do[field]}})
+        collection.update_many({}, {"$set": {field: update_to_do[field]}})
 
         end_time = time.time_ns()
 
@@ -67,11 +68,9 @@ for num_docs in num_docs_to_update:
             "end_time": end_time,
         })
 
-        # print(f"Number of Updates: {num_docs}, Type of Field updated: {type(update_to_do[field])}, "
-        #   f"Start Time: {start_time:.2f}, End Time: {end_time:.2f}, "
-        #   f"Elapsed Time: {(elapsed_time):.2f}")
-        
-        collection.drop()
+        print(f"Number of Updates: {num_docs}, Type of Field updated: {type(update_to_do[field])}, "
+              f"Start Time: {start_time:.2f}, End Time: {end_time:.2f}, "
+              f"Elapsed Time: {(elapsed_time):.2f}")
 
 # Print results
 for result in update_results:
