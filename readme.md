@@ -66,7 +66,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Course instructors and TAs of SENG 533
 - MongoDB documentation and community resources
-
----
-
-Ensure that all the details like configuration and usage match your project specifics. Let me know if there's anything else you'd like to add or modify!
