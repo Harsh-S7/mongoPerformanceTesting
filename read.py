@@ -1,49 +1,69 @@
 from pymongo import MongoClient
 import time
+from faker import Faker
+
+# Initialize Faker for document generation
+fake = Faker()
+
+# Function to generate a single document with diverse fields
+
+
+def generate_document():
+    return {
+        "name": fake.name(),  # String field
+        "age": fake.random_int(min=18, max=100),  # Integer field
+        "is_active": fake.boolean(),  # Boolean field
+        "email": fake.email(),
+        "address": fake.address(),
+        "profile": {
+            "birthdate": fake.date_of_birth().isoformat(),
+            "bio": fake.text(max_nb_chars=200)
+        }
+    }
+
 
 # MongoDB client setup
 client = MongoClient('mongodb://localhost:27017/')
 db = client.seng533
-collection = db['seng533_read_test']
+collection = db['performance_test']
 
-# Preload data to read
-documents = [{"number": i} for i in range(1000000)]
+# Number of documents to query for each test
+num_docs_per_test = [1, 5, 10, 100, 1000, 10000, 100000]
+
+# Insert a fixed large number of documents (e.g., 100,000) to test the queries against
+large_doc_count = 100000
+documents = [generate_document() for _ in range(large_doc_count)]
 collection.insert_many(documents)
 
-# Number of documents to read in each test
-read_counts = [1, 10, 100, 1000, 10000, 100000, 1000000]
+# Function to test read performance
 
-read_results = []
 
-for count in read_counts:
-    start_time = time.time()
-    documents = list(collection.find().limit(count))
-    end_time = time.time()
+def test_read_performance(field, num_docs):
+    query = {}
+    if field == "name":  # Example for string
+        query = {"name": documents[0]['name']}
+    elif field == "age":  # Example for integer
+        query = {"age": documents[0]['age']}
+    elif field == "is_active":  # Example for boolean
+        query = {"is_active": documents[0]['is_active']}
+
+    start_time = time.time_ns()
+    cursor = collection.find(query).limit(num_docs)
+    results = list(cursor)  # Force the cursor to retrieve data
+    end_time = time.time_ns()
 
     elapsed_time = end_time - start_time
-    read_results.append({
-        "num_documents": count,
-        "elapsed_time_seconds": elapsed_time,
-        "documents_per_second": count / elapsed_time
-    })
+    inverse_throughput = float(elapsed_time / num_docs)
 
-# Print results
-for result in read_results:
-    print(f"Number of Documents: {result['num_documents']}, "
-          f"Elapsed Time (seconds): {result['elapsed_time_seconds']:.2f}, "
-          f"Documents per Second: {result['documents_per_second']:.2f}")
+    print(f"Field: {field}, Number of Documents: {num_docs}, "
+          f"Elapsed Time (ns): {elapsed_time}, 1/Throughput (ns/document): {inverse_throughput}")
 
-# Clean up
+
+# Test reads for different field types and numbers of documents
+fields = ['name', 'age', 'is_active']
+for field in fields:
+    for count in num_docs_per_test:
+        test_read_performance(field, count)
+
+# Clean up: Uncomment the next line if you want to clear the test data
 collection.drop()
-
-"""
-
-Number of Documents: 1, Elapsed Time (seconds): 0.08, Documents per Second: 12.82
-Number of Documents: 10, Elapsed Time (seconds): 0.00, Documents per Second: 11096.04
-Number of Documents: 100, Elapsed Time (seconds): 0.00, Documents per Second: 231601.55
-Number of Documents: 1000, Elapsed Time (seconds): 0.00, Documents per Second: 217671.08
-Number of Documents: 10000, Elapsed Time (seconds): 0.01, Documents per Second: 729279.29
-Number of Documents: 100000, Elapsed Time (seconds): 0.08, Documents per Second: 1244582.13
-Number of Documents: 1000000, Elapsed Time (seconds): 1.54, Documents per Second: 647879.92
-
-"""
