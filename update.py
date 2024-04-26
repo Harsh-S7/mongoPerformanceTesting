@@ -29,7 +29,7 @@ def generate_fake_data(collection, num_records):
         
 
 # Number of documents to update 
-num_docs_to_update = [1, 5, 10, 100, 1000, 10000, 100000, 1000000]
+num_docs_to_update = [1, 5, 10, 100, 1000, 10000, 100000]
 
 # Update types 
 update_fields = ['name', 'id', 'bool']
@@ -45,18 +45,15 @@ update_results = []
 
 for num_docs in num_docs_to_update:
     for field in update_fields:
-
         # Generate documents
         documents = [generate_fake_data(collection, num_docs)]
 
         # Time the update 
         start_time = time.time_ns()
-        st1 = time.time()
 
         # update documents
         collection.update_many({}, { "$set": {field: update_to_do[field]}})
 
-        st2 = time.time()
         end_time = time.time_ns()
 
         # Calculate and store results
@@ -65,16 +62,20 @@ for num_docs in num_docs_to_update:
             "num_docs": num_docs,
             "field_type": str(type(update_to_do[field])),
             "elapsed_time_seconds": elapsed_time,
-            "updates_per_second": num_docs / (start_time-end_time)
+            "updates_per_second": elapsed_time / num_docs,
+            "start_time": start_time,
+            "end_time": end_time,
         })
 
-        print(f"Number of Updates: {num_docs}, Type of Field updated: {type(update_to_do[field])}, "
-          f"Start Time: {start_time:.2f}, End Time: {end_time:.2f}, "
-          f"Elapsed Time: {(elapsed_time):.2f}")
+        # print(f"Number of Updates: {num_docs}, Type of Field updated: {type(update_to_do[field])}, "
+        #   f"Start Time: {start_time:.2f}, End Time: {end_time:.2f}, "
+        #   f"Elapsed Time: {(elapsed_time):.2f}")
+        
+        collection.drop()
 
 # Print results
 for result in update_results:
-    print(f"Number of Documents: {result['num_documents']}, Type of Field updated: {result['field_type']}, "
+    print(f"Number of Documents: {result['num_docs']}, Type of Field updated: {result['field_type']}, "
           f"Elapsed Time (seconds): {result['elapsed_time_seconds']:.2f}, "
           f"Updates per Second: {result['updates_per_second']:.2f}")
 
